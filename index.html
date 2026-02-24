@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-<title>Pelvic Flow V3.1</title>
+<title>Pelvic Flow V3.2</title>
 <meta name="theme-color" content="#071029"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -123,8 +123,28 @@ body{background:linear-gradient(180deg,#071029 0%,#081827 60%);color:#e6eef8;min
 .event-pill.bed{background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.28);color:var(--purple);}
 .event-pill.exercise{background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.28);color:var(--purple);}
 .event-pill.sgarro{background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.28);color:var(--warn);}
+.event-pill.meal{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.22);color:var(--warn);}
 .event-pill.night{border-style:dashed;opacity:.85;}
 .event-pill.pee.night,.event-pill.poop.night{border-color:var(--danger);color:var(--danger);background:rgba(232,112,112,0.08);}
+.event-pill.meal{background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25);color:var(--warn);}
+
+/* DRAG & DROP */
+.event-pill.dragging{opacity:.4;transform:scale(.9);}
+.hour-row.drop-target{background:rgba(110,231,183,0.07);outline:1px dashed rgba(110,231,183,0.4);}
+.event-pill.moving{box-shadow:0 0 0 2px var(--accent);animation:pulse-pill .7s infinite alternate;}
+@keyframes pulse-pill{from{opacity:1}to{opacity:.55}}
+.drag-cancel-hint{font-size:11px;color:var(--accent);text-align:center;padding:6px;animation:fadeIn .3s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* NIGHT DIVIDER */
+.night-divider{display:flex;align-items:center;gap:8px;padding:6px 0;margin:2px 0;}
+.night-divider span{font-size:11px;color:var(--danger);font-weight:700;white-space:nowrap;}
+.night-divider::before,.night-divider::after{content:'';flex:1;height:1px;background:rgba(232,112,112,0.3);}
+
+/* HIDDEN ROWS (before wake) */
+.hour-row.hidden-slot{display:none;}
+.show-hidden-btn{font-size:11px;color:var(--muted);text-align:center;padding:4px;cursor:pointer;margin-bottom:2px;}
+.show-hidden-btn:hover{color:var(--accent);}
 
 /* POPUPS */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:flex-end;
@@ -301,14 +321,18 @@ small.muted{font-size:11px;color:var(--muted);}
   <!-- QUICK ACTIONS -->
   <div class="card">
     <div class="card-title">Azioni rapide</div>
-    <div class="quick-grid">
-      <button class="qbtn" onclick="recordWake()"><span class="emoji">🌅</span><span class="lbl">Wake</span></button>
-      <button class="qbtn" onclick="recordBed()"><span class="emoji">🌙</span><span class="lbl">Bed</span></button>
-      <button class="qbtn accent" onclick="openInPopup()"><span class="emoji">💧</span><span class="lbl">Bevi</span></button>
+    <div class="quick-grid" style="grid-template-columns:repeat(4,1fr);">
+      <button class="qbtn" onclick="recordWake()"><span class="emoji">🌅</span><span class="lbl">Sveglia</span></button>
+      <button class="qbtn" onclick="recordBed()"><span class="emoji">🌙</span><span class="lbl">Nanna</span></button>
+      <button class="qbtn accent" onclick="openInPopup()"><span class="emoji">💧</span><span class="lbl">Acqua</span></button>
       <button class="qbtn accent" onclick="openPeePopup()"><span class="emoji">🚽</span><span class="lbl">Pipì</span></button>
-      <button class="qbtn" onclick="openPoopPopup()"><span class="emoji">💩</span><span class="lbl">Cacca</span></button>
+      <button class="qbtn" onclick="openPoopPopup()"><span class="emoji">💩</span><span class="lbl">Transito</span></button>
       <button class="qbtn" onclick="switchTab('esercizi')"><span class="emoji">🧘</span><span class="lbl">Esercizi</span></button>
-      <button class="qbtn" style="border-color:rgba(251,191,36,0.3);" onclick="openSgarroPopup()"><span class="emoji">🍕</span><span class="lbl">Sgarro</span></button>
+      <button class="qbtn" onclick="recordMeal('pranzo')"><span class="emoji">🍽</span><span class="lbl">Pranzo</span></button>
+      <button class="qbtn" onclick="recordMeal('cena')"><span class="emoji">🍷</span><span class="lbl">Cena</span></button>
+    </div>
+    <div style="margin-top:8px;text-align:center;">
+      <button class="qbtn" style="width:auto;padding:7px 18px;border-color:rgba(251,191,36,0.3);font-size:13px;" onclick="openSgarroPopup()">🍕 Sgarro</button>
     </div>
   </div>
 
@@ -364,6 +388,9 @@ small.muted{font-size:11px;color:var(--muted);}
       <button class="qbtn" style="padding:5px 10px;font-size:12px;" onclick="openInPopup()">💧</button>
       <button class="qbtn" style="padding:5px 10px;font-size:12px;" onclick="openPeePopup()">🚽</button>
       <button class="qbtn" style="padding:5px 10px;font-size:12px;" onclick="openPoopPopup()">💩</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center;">
+      Tieni premuto un evento per spostarlo → tocca lo slot di destinazione
     </div>
     <div class="hour-grid" id="hourGrid"></div>
   </div>
@@ -471,7 +498,7 @@ small.muted{font-size:11px;color:var(--muted);}
 <!-- ====== POPUP FLUID IN ====== -->
 <div class="overlay" id="inOverlay" onclick="closeOverlay('inOverlay',event)">
   <div class="popup" onclick="event.stopPropagation()">
-    <div class="popup-title">💧 Fluid IN <button class="popup-close" onclick="closeOverlay('inOverlay')">✕</button></div>
+    <div class="popup-title">💧 Acqua / Idratazione <button class="popup-close" onclick="closeOverlay('inOverlay')">✕</button></div>
     <div class="popup-section">
       <div class="popup-label">Quantità (ml)</div>
       <div class="btn-group" id="inAmtBtns">
@@ -549,7 +576,7 @@ small.muted{font-size:11px;color:var(--muted);}
 <!-- ====== POPUP POOP ====== -->
 <div class="overlay" id="poopOverlay" onclick="closeOverlay('poopOverlay',event)">
   <div class="popup" onclick="event.stopPropagation()">
-    <div class="popup-title">💩 Cacca <button class="popup-close" onclick="closeOverlay('poopOverlay')">✕</button></div>
+    <div class="popup-title">💩 Transito <button class="popup-close" onclick="closeOverlay('poopOverlay')">✕</button></div>
     <div class="popup-section">
       <div class="popup-label">Quantità</div>
       <div class="btn-group">
@@ -770,6 +797,14 @@ function recordBed(){
   saveAll(); render();
 }
 
+function recordMeal(type){
+  const day=getDay(currentDate);
+  day.events.push({time:nowTime(),type:'meal',mealType:type});
+  saveAll(); render();
+  // Quick haptic feedback
+  if(navigator.vibrate) navigator.vibrate(20);
+}
+
 /* ===================== WELLBEING ===================== */
 function setWb(slot,val){
   const day=getDay(currentDate);
@@ -945,7 +980,6 @@ function renderHomeStats(){
 }
 
 /* ===================== HOUR GRID ===================== */
-// Plan markers: map time → hint text
 function getPlanMarkers(){
   const p=appData.settings.plan;
   const markers={};
@@ -954,8 +988,7 @@ function getPlanMarkers(){
   add(p.breakfast,'🍳 Colazione');
   add(p.lunch,'🍽 Pranzo');
   add(p.dinner,'🍽 Cena');
-  add(p.stopDrinking,'🛑 Stop liquidi');
-  // Drink intervals
+  add(p.stopDrinking,'🛑 Stop acqua');
   if(p.drinkIntervalHours){
     for(let h=7;h<=18;h+=p.drinkIntervalHours){
       const hh=Math.floor(h); const mm=Math.round((h-hh)*60);
@@ -973,6 +1006,9 @@ function setGridInterval(n){
   renderHourGrid();
 }
 
+// Drag state
+let dragState={active:false,eventObj:null,realIdx:null};
+
 function renderHourGrid(){
   const container=document.getElementById('hourGrid');
   container.innerHTML='';
@@ -980,26 +1016,62 @@ function renderHourGrid(){
   const events=[...day.events].sort((a,b)=>a.time.localeCompare(b.time));
   const planMarkers=getPlanMarkers();
   const totalSlots=(24*60)/gridInterval;
-  const slotMap={};
 
+  // Determine visible range
+  const wakeMin=day.wake?timeToMin(day.wake):timeToMin(appData.settings.plan.wakeTarget||'07:00');
+  const bedMin=day.bed?timeToMin(day.bed):null;
+
+  // Build slot map
+  const slotMap={};
   for(let i=0;i<totalSlots;i++){
     const min=i*gridInterval;
     const h=Math.floor(min/60), m=min%60;
     const key=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
-    slotMap[key]=[];
+    slotMap[key]={events:[],min};
   }
   events.forEach(e=>{
     const [eh,em]=e.time.split(':').map(Number);
     const slotMin=Math.floor((eh*60+em)/gridInterval)*gridInterval;
     const h=Math.floor(slotMin/60),m=slotMin%60;
     const key=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
-    if(slotMap[key]) slotMap[key].push(e);
+    if(slotMap[key]) slotMap[key].events.push(e);
   });
 
-  for(const [time,evts] of Object.entries(slotMap)){
+  // Count hidden slots
+  let hiddenCount=0;
+  for(const [time,slot] of Object.entries(slotMap)){
+    if(slot.min<wakeMin && slot.events.length===0) hiddenCount++;
+  }
+  if(hiddenCount>0){
+    const btn=document.createElement('div');
+    btn.className='show-hidden-btn';
+    btn.id='showHiddenBtn';
+    btn.textContent='▲ Mostra '+hiddenCount+' ore notturne precedenti';
+    btn.onclick=()=>{ document.querySelectorAll('.hour-row.hidden-slot').forEach(r=>r.classList.remove('hidden-slot')); btn.remove(); };
+    container.appendChild(btn);
+  }
+
+  let bedDividerAdded=false;
+
+  for(const [time,slot] of Object.entries(slotMap)){
+    const {min,events:evts}=slot;
+    const isBeforeWake=min<wakeMin && evts.length===0;
+    const isAfterBed=bedMin!==null && min>=bedMin;
+
+    // Night divider: first slot >= bed time
+    if(bedMin!==null && !bedDividerAdded && min>=bedMin){
+      bedDividerAdded=true;
+      const div=document.createElement('div');
+      div.className='night-divider';
+      div.innerHTML='<span>🌙 Notte (dopo le '+day.bed+')</span>';
+      container.appendChild(div);
+    }
+
     const hint=planMarkers[time];
     const row=document.createElement('div');
-    row.className='hour-row'+(hint?' plan-marker':'');
+    row.className='hour-row'+(hint?' plan-marker':'')+(isBeforeWake?' hidden-slot':'');
+    row.dataset.slotTime=time;
+    row.dataset.slotMin=min;
 
     const lbl=document.createElement('div');
     lbl.className='hour-label';
@@ -1017,37 +1089,105 @@ function renderHourGrid(){
 
     evts.forEach(e=>{
       const eIdx=events.indexOf(e);
-      const pill=document.createElement('div');
-      pill.className='event-pill '+e.type+(e.night?' night':'');
-      pill.innerHTML=pillText(e)+' <span class="del-x" onclick="deleteEvent('+eIdx+',event)">✕</span>';
-      pill.onclick=(ev)=>{ if(!ev.target.classList.contains('del-x')) editEventTime(eIdx); };
+      const pill=createPill(e,eIdx,isAfterBed);
       evtsDiv.appendChild(pill);
     });
+
+    // Drop target click handler
+    row.addEventListener('click',()=>handleDropTarget(row,time));
 
     row.appendChild(lbl);
     row.appendChild(evtsDiv);
     container.appendChild(row);
   }
+
+  // If drag active, show cancel hint
+  if(dragState.active){
+    const hint=document.createElement('div');
+    hint.className='drag-cancel-hint';
+    hint.textContent='Tap su uno slot per spostare · Tap qui per annullare ↓';
+    hint.onclick=cancelDrag;
+    container.appendChild(hint);
+    document.querySelectorAll('.hour-row').forEach(r=>r.classList.add('drop-target'));
+  }
+}
+
+function createPill(e,eIdx,isNightSlot){
+  const pill=document.createElement('div');
+  const isNight=e.night||isNightSlot;
+  pill.className='event-pill '+e.type+(isNight?' night':'');
+  if(dragState.active && dragState.realIdx===eIdx) pill.classList.add('moving');
+  pill.innerHTML=pillText(e)+' <span class="del-x" onclick="deleteEvent('+eIdx+',event)">✕</span>';
+
+  // Tap: if drag mode active, ignore (handled by row); else edit time
+  pill.addEventListener('click',(ev)=>{
+    if(ev.target.classList.contains('del-x')) return;
+    if(dragState.active){ ev.stopPropagation(); return; }
+    editEventTime(eIdx);
+  });
+
+  // Long press to enter drag mode
+  let longPressTimer=null;
+  pill.addEventListener('pointerdown',()=>{
+    longPressTimer=setTimeout(()=>{ startDrag(e,eIdx); },500);
+  });
+  pill.addEventListener('pointerup',()=>clearTimeout(longPressTimer));
+  pill.addEventListener('pointercancel',()=>clearTimeout(longPressTimer));
+  pill.addEventListener('pointermove',()=>clearTimeout(longPressTimer));
+
+  return pill;
+}
+
+function startDrag(e,eIdx){
+  if(navigator.vibrate) navigator.vibrate(40);
+  dragState={active:true,eventObj:e,realIdx:eIdx};
+  renderHourGrid();
+}
+
+function handleDropTarget(row,newTime){
+  if(!dragState.active) return;
+  const e=dragState.eventObj;
+  if(!e) return;
+  const day=getDay(currentDate);
+  const realE=day.events.find(ev=>ev===e);
+  if(!realE){ cancelDrag(); return; }
+
+  // Use slot start time (on-the-hour)
+  realE.time=newTime;
+  if(realE.type==='pee'||realE.type==='poop'){
+    realE.night=day.bed?newTime>=day.bed:false;
+  }
+  if(realE.type==='wake') day.wake=newTime;
+  if(realE.type==='bed') day.bed=newTime;
+
+  dragState={active:false,eventObj:null,realIdx:null};
+  saveAll(); render();
+}
+
+function cancelDrag(){
+  dragState={active:false,eventObj:null,realIdx:null};
+  renderHourGrid();
 }
 
 function pillText(e){
-  if(e.type==='in') return (e.amount||'?')+'ml ↓';
+  if(e.type==='in') return '💧'+(e.amount||'?')+'ml';
   if(e.type==='pee'){
     let t='🚽';
     if(e.duration) t+=' '+e.duration+'s';
     if(e.urgency!=null) t+=' U'+e.urgency;
     if(e.flow) t+=' '+e.flow.charAt(0).toUpperCase();
-    if(e.pain_after) t+=' 😣'+e.pain_after;
+    if(e.pain_after!=null) t+=' 😣'+e.pain_after;
     return t;
   }
   if(e.type==='poop'){
     let t='💩';
     if(e.amount) t+=' '+e.amount;
-    if(e.pain_after) t+=' 😣'+e.pain_after;
+    if(e.pain_after!=null) t+=' 😣'+e.pain_after;
     return t;
   }
-  if(e.type==='wake') return '🌅 Wake';
-  if(e.type==='bed') return '🌙 Bed';
+  if(e.type==='wake') return '🌅 Sveglia';
+  if(e.type==='bed') return '🌙 Nanna';
+  if(e.type==='meal') return (e.mealType==='pranzo'?'🍽 Pranzo':'🍷 Cena');
   if(e.type==='exercise') return '🧘 '+((e.name||'').split(' ')[0]);
   if(e.type==='sgarro') return '🍕 '+({'cibo':'Cibo','alcol':'Alcol','caffe':'Caffè','liquidi_serali':'Liquidi serali','stress':'Stress','altro':'Sgarro'}[e.sgarroType]||'Sgarro')+(e.note?' ('+e.note+')':'');
   return e.type;
@@ -1202,7 +1342,9 @@ function saveIn(){
   if(!inState.amount) return;
   const day=getDay(currentDate);
   day.events.push({time:nowTime(),type:'in',amount:inState.amount});
-  saveAll(); render(); closeOverlay('inOverlay');
+  saveAll(); render();
+  resetDrinkTimer(); // reset reminder countdown
+  closeOverlay('inOverlay');
 }
 
 /* ===================== PEE POPUP ===================== */
@@ -1257,7 +1399,9 @@ function savePee(){
   day.events.push({time:t,type:'pee',duration:peeState.duration,
     urgency:peeState.urgency,flow:peeState.flow,emptying:peeState.emptying,
     pain_after:peeState.pain_after,night});
-  saveAll(); render(); closeOverlay('peeOverlay');
+  saveAll(); render();
+  resetPeeTimer(); // reset reminder countdown
+  closeOverlay('peeOverlay');
 }
 
 /* ===================== POOP POPUP ===================== */
@@ -1509,64 +1653,138 @@ function saveSettings(){
 }
 
 /* ===================== NOTIFICATIONS ===================== */
-let notifIntervals=[];
+// Track last times to reset reminders correctly
+let lastDrinkTime=0;  // ms timestamp
+let lastPeeTime=0;
+
+let notifCheckInterval=null;
+
 function toggleNotifications(){
   const cur=appData.settings.notifications;
   if(!cur){
-    if('Notification' in window){
+    if('Notification' in window && Notification.permission!=='granted'){
       Notification.requestPermission().then(perm=>{
-        if(perm==='granted'){
-          appData.settings.notifications=true;
-          setToggle('t-notif',true);
-          saveAll(); startReminders();
-        }
+        if(perm==='granted'){ enableNotifications(); }
+        else { alert('Permesso notifiche negato. Attivale dalle impostazioni del browser.'); }
       });
-    } else {
-      appData.settings.notifications=true;
-      setToggle('t-notif',true);
-      saveAll(); startReminders();
-    }
+    } else { enableNotifications(); }
   } else {
     appData.settings.notifications=false;
     setToggle('t-notif',false);
     saveAll(); stopReminders();
   }
 }
+function enableNotifications(){
+  appData.settings.notifications=true;
+  setToggle('t-notif',true);
+  saveAll(); startReminders();
+}
+
 function startReminders(){
   stopReminders();
-  const drinkMs=(appData.settings.plan.drinkIntervalHours||1)*3600*1000;
-  const peeMs=(appData.settings.plan.peeIntervalHours||2)*3600*1000;
-  notifIntervals.push(setInterval(()=>showReminder('drink'),drinkMs));
-  notifIntervals.push(setInterval(()=>showReminder('pee'),peeMs));
-}
-function stopReminders(){ notifIntervals.forEach(clearInterval); notifIntervals=[]; }
+  // Init last times from today's events
+  const day=getDay(currentDate);
+  const drinks=day.events.filter(e=>e.type==='in').map(e=>todayTs(e.time)).sort((a,b)=>b-a);
+  const pees=day.events.filter(e=>e.type==='pee').map(e=>todayTs(e.time)).sort((a,b)=>b-a);
+  lastDrinkTime=drinks.length?drinks[0]:Date.now();
+  lastPeeTime=pees.length?pees[0]:Date.now();
 
-let currentReminder=null;
-function showReminder(type){
+  // Check every 30 seconds (efficient)
+  notifCheckInterval=setInterval(checkReminders,30000);
+}
+
+function stopReminders(){
+  if(notifCheckInterval){ clearInterval(notifCheckInterval); notifCheckInterval=null; }
+}
+
+function todayTs(timeStr){
+  const [h,m]=timeStr.split(':').map(Number);
+  const d=new Date();
+  d.setHours(h,m,0,0);
+  return d.getTime();
+}
+
+function resetDrinkTimer(){
+  lastDrinkTime=Date.now();
+  dismissReminderType('drink');
+}
+function resetPeeTimer(){
+  lastPeeTime=Date.now();
+  dismissReminderType('pee');
+}
+
+function checkReminders(){
+  if(!appData.settings.notifications) return;
   const plan=appData.settings.plan;
-  const stop=timeToMin(plan.stopDrinking);
-  if(type==='drink' && timeToMin(nowTime())>stop) return; // past stop time
-  currentReminder=type;
+  const now=Date.now();
+  const stopMin=timeToMin(plan.stopDrinking||'19:00');
+  const nowMin=timeToMin(nowTime());
+
+  // Drink check
+  const drinkMs=(plan.drinkIntervalHours||1)*3600*1000;
+  if(nowMin<=stopMin && (now-lastDrinkTime)>=drinkMs){
+    showReminder('drink');
+  }
+  // Pee check
+  const peeMs=(plan.peeIntervalHours||2)*3600*1000;
+  if((now-lastPeeTime)>=peeMs){
+    showReminder('pee');
+  }
+}
+
+let activeReminders={}; // type → banner shown
+function showReminder(type){
+  if(activeReminders[type]) return; // already shown
+  activeReminders[type]=true;
+  const plan=appData.settings.plan;
   const banner=document.getElementById('reminderBanner');
   const txt=document.getElementById('reminderText');
   const btn=document.getElementById('reminderYes');
   if(type==='drink'){
-    txt.textContent='💧 Ora di bere!';
+    txt.textContent='💧 È ora di bere!';
     btn.textContent='Bevi ✓';
-    btn.onclick=()=>{ const day=getDay(currentDate); day.events.push({time:nowTime(),type:'in',amount:plan.glassml||200}); saveAll(); render(); dismissReminder(); };
+    btn.onclick=()=>{
+      const day=getDay(currentDate);
+      day.events.push({time:nowTime(),type:'in',amount:plan.glassml||200});
+      saveAll(); render();
+      resetDrinkTimer();
+      activeReminders['drink']=false;
+    };
   } else {
-    txt.textContent='🚽 Ora della pipì!';
-    btn.textContent='Ricordato ✓';
-    btn.onclick=()=>{ openPeePopup(); dismissReminder(); };
+    txt.textContent='🚽 Pausa pipì!';
+    btn.textContent='Vai ✓';
+    btn.onclick=()=>{
+      openPeePopup();
+      resetPeeTimer();
+      activeReminders['pee']=false;
+      banner.style.display='none';
+    };
   }
   banner.style.display='block';
+
+  // Native notification (works when PWA installed and browser running)
   if('Notification' in window && Notification.permission==='granted'){
-    new Notification('Pelvic Flow',{body:type==='drink'?'Ora di bere un bicchiere d\'acqua':'Ora della pipì 🚽',icon:''});
+    const msg=type==='drink'?'Bevi un bicchiere d\'acqua 💧':'Pausa pipì 🚽 — è passato il momento';
+    if(navigator.serviceWorker && navigator.serviceWorker.controller){
+      navigator.serviceWorker.ready.then(reg=>{
+        reg.showNotification('Pelvic Flow',{body:msg,icon:'',badge:'',vibrate:[100,50,100],tag:type,renotify:true});
+      }).catch(()=>new Notification('Pelvic Flow',{body:msg}));
+    } else {
+      new Notification('Pelvic Flow',{body:msg});
+    }
   }
 }
+
 function dismissReminder(){
   document.getElementById('reminderBanner').style.display='none';
-  currentReminder=null;
+  activeReminders={};
+}
+function dismissReminderType(type){
+  activeReminders[type]=false;
+  // Hide banner only if no other reminder active
+  if(!Object.values(activeReminders).some(Boolean)){
+    document.getElementById('reminderBanner').style.display='none';
+  }
 }
 
 /* ===================== TABS ===================== */
@@ -1668,7 +1886,21 @@ const manifestBlob=new Blob([JSON.stringify({
 })],{type:'application/json'});
 document.getElementById('pwa-manifest').href=URL.createObjectURL(manifestBlob);
 
-const swCode=`const CACHE='pf-v3';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>clients.claim());self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request).catch(()=>c))));`;
+const swCode=`
+const CACHE='pf-v3';
+self.addEventListener('install',e=>self.skipWaiting());
+self.addEventListener('activate',e=>clients.claim());
+self.addEventListener('fetch',e=>e.respondWith(
+  caches.match(e.request).then(c=>c||fetch(e.request).catch(()=>c))
+));
+self.addEventListener('notificationclick',e=>{
+  e.notification.close();
+  e.waitUntil(clients.matchAll({type:'window'}).then(list=>{
+    for(const c of list){ if(c.url&&'focus' in c) return c.focus(); }
+    if(clients.openWindow) return clients.openWindow('./');
+  }));
+});
+`;
 if('serviceWorker' in navigator){
   const swUrl=URL.createObjectURL(new Blob([swCode],{type:'application/javascript'}));
   navigator.serviceWorker.register(swUrl,{scope:'./'}).catch(()=>{});
@@ -1694,6 +1926,8 @@ loadSettings();
 render();
 if(appData.settings.notifications) startReminders();
 window.addEventListener('resize',()=>renderChart());
+// Dismiss drag mode if user scrolls away
+document.addEventListener('scroll',()=>{ if(dragState.active) cancelDrag(); },{passive:true});
 </script>
 </body>
 </html>
