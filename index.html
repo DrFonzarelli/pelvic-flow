@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-<title>Pelvic Flow V3</title>
+<title>Pelvic Flow V3.1</title>
 <meta name="theme-color" content="#071029"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -122,6 +122,7 @@ body{background:linear-gradient(180deg,#071029 0%,#081827 60%);color:#e6eef8;min
 .event-pill.wake{background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.28);color:var(--warn);}
 .event-pill.bed{background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.28);color:var(--purple);}
 .event-pill.exercise{background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.28);color:var(--purple);}
+.event-pill.sgarro{background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.28);color:var(--warn);}
 .event-pill.night{border-style:dashed;opacity:.85;}
 .event-pill.pee.night,.event-pill.poop.night{border-color:var(--danger);color:var(--danger);background:rgba(232,112,112,0.08);}
 
@@ -307,6 +308,7 @@ small.muted{font-size:11px;color:var(--muted);}
       <button class="qbtn accent" onclick="openPeePopup()"><span class="emoji">🚽</span><span class="lbl">Pipì</span></button>
       <button class="qbtn" onclick="openPoopPopup()"><span class="emoji">💩</span><span class="lbl">Cacca</span></button>
       <button class="qbtn" onclick="switchTab('esercizi')"><span class="emoji">🧘</span><span class="lbl">Esercizi</span></button>
+      <button class="qbtn" style="border-color:rgba(251,191,36,0.3);" onclick="openSgarroPopup()"><span class="emoji">🍕</span><span class="lbl">Sgarro</span></button>
     </div>
   </div>
 
@@ -530,9 +532,13 @@ small.muted{font-size:11px;color:var(--muted);}
         </div>
       </div>
       <div class="popup-section">
-        <div class="popup-label">Dolore/tensione dopo <span class="wb-val" id="pee-pain-val">0</span>/10</div>
-        <div class="pain-slider-row">
-          <input type="range" min="0" max="10" value="0" id="pee-pain-slider" oninput="document.getElementById('pee-pain-val').textContent=this.value">
+        <div class="popup-label">Dolore/tensione dopo</div>
+        <div class="btn-group">
+          <button class="sel-btn" data-v="0" onclick="selPee('pain',this)">😊 Nessuno</button>
+          <button class="sel-btn" data-v="1" onclick="selPee('pain',this)">🙂 Lieve</button>
+          <button class="sel-btn" data-v="2" onclick="selPee('pain',this)">😐 Moderato</button>
+          <button class="sel-btn" data-v="3" onclick="selPee('pain',this)">😣 Forte</button>
+          <button class="sel-btn" data-v="4" onclick="selPee('pain',this)">😖 Molto forte</button>
         </div>
       </div>
       <button class="save-btn" id="savePeeBtn" onclick="savePee()">Salva pipì</button>
@@ -559,17 +565,82 @@ small.muted{font-size:11px;color:var(--muted);}
         <button class="sel-btn" data-v="incompleto" onclick="selPoop('emptying',this)">Incompleto</button>
       </div>
     </div>
+
+    <!-- COLOR SLIDER -->
     <div class="popup-section">
-      <div class="popup-label">Tipo (scala Bristol)</div>
-      <div class="bristol-grid" id="bristolGrid"></div>
-    </div>
-    <div class="popup-section">
-      <div class="popup-label">Dolore/tensione dopo <span class="wb-val" id="poop-pain-val">0</span>/10</div>
-      <div class="pain-slider-row">
-        <input type="range" min="0" max="10" value="0" id="poop-pain-slider" oninput="document.getElementById('poop-pain-val').textContent=this.value">
+      <div class="popup-label">Colore <span id="colorLabel" style="color:var(--muted);font-weight:400;text-transform:none;font-size:12px;"></span></div>
+      <div style="position:relative;margin:6px 0;">
+        <div id="colorGradient" style="height:28px;border-radius:10px;width:100%;
+          background:linear-gradient(to right,#6b0f0f,#7a2c10,#8B4513,#a0522d,#c68642,#d4a853,#c8b400,#4a7c00,#e8e8e0);
+          cursor:pointer;border:1px solid rgba(255,255,255,0.1);"></div>
+        <input type="range" id="colorSlider" min="0" max="8" step="1" value="3"
+          style="position:absolute;top:0;left:0;width:100%;height:28px;opacity:0;cursor:pointer;margin:0;"
+          oninput="updateColorSlider(this.value)">
+        <div id="colorThumb" style="position:absolute;top:-3px;width:34px;height:34px;border-radius:50%;
+          border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5);pointer-events:none;transition:left .1s;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px;">
+        <span>Rosso scuro</span><span>Marrone</span><span>Giallo</span><span>Verde</span><span>Bianco</span>
       </div>
     </div>
+
+    <!-- BRISTOL -->
+    <div class="popup-section">
+      <div class="popup-label">Consistenza (Bristol 1–7)</div>
+      <div class="bristol-grid" id="bristolGrid"></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px;">
+        <span>1–2 Duro</span><span>3–4 ✓ Ideale</span><span>5–7 Molle</span>
+      </div>
+    </div>
+
+    <!-- SMELL -->
+    <div class="popup-section">
+      <div class="popup-label">Odore</div>
+      <div class="btn-group">
+        <button class="sel-btn" data-v="normale" onclick="selPoop('smell',this)">Normale</button>
+        <button class="sel-btn" data-v="intenso" onclick="selPoop('smell',this)">Intenso</button>
+        <button class="sel-btn" data-v="molto_intenso" onclick="selPoop('smell',this)">Molto intenso</button>
+      </div>
+    </div>
+
+    <!-- PAIN -->
+    <div class="popup-section">
+      <div class="popup-label">Dolore/tensione dopo</div>
+      <div class="btn-group">
+        <button class="sel-btn" data-v="0" onclick="selPoop('pain',this)">😊 Nessuno</button>
+        <button class="sel-btn" data-v="1" onclick="selPoop('pain',this)">🙂 Lieve</button>
+        <button class="sel-btn" data-v="2" onclick="selPoop('pain',this)">😐 Moderato</button>
+        <button class="sel-btn" data-v="3" onclick="selPoop('pain',this)">😣 Forte</button>
+        <button class="sel-btn" data-v="4" onclick="selPoop('pain',this)">😖 Molto forte</button>
+      </div>
+    </div>
+
     <button class="save-btn" id="savePoopBtn" onclick="savePoop()">Salva</button>
+  </div>
+</div>
+
+<!-- ====== POPUP SGARRO ====== -->
+<div class="overlay" id="sgarroOverlay" onclick="closeOverlay('sgarroOverlay',event)">
+  <div class="popup" onclick="event.stopPropagation()">
+    <div class="popup-title">🍕 Sgarro <button class="popup-close" onclick="closeOverlay('sgarroOverlay')">✕</button></div>
+    <small class="muted" style="display:block;margin-bottom:12px;">Registra uno sgarro dal piano (cibo, bevanda, abitudine) senza giudizio. Serve solo per correlarlo col benessere.</small>
+    <div class="popup-section">
+      <div class="popup-label">Tipo</div>
+      <div class="btn-group">
+        <button class="sel-btn" data-v="cibo" onclick="selSgarro('type',this)">🍔 Cibo</button>
+        <button class="sel-btn" data-v="alcol" onclick="selSgarro('type',this)">🍷 Alcol</button>
+        <button class="sel-btn" data-v="caffe" onclick="selSgarro('type',this)">☕ Caffè</button>
+        <button class="sel-btn" data-v="liquidi_serali" onclick="selSgarro('type',this)">🌙 Liquidi serali</button>
+        <button class="sel-btn" data-v="stress" onclick="selSgarro('type',this)">😰 Stress</button>
+        <button class="sel-btn" data-v="altro" onclick="selSgarro('type',this)">Altro</button>
+      </div>
+    </div>
+    <div class="popup-section" id="sgarroNoteSection" style="display:none;">
+      <div class="popup-label">Note (opzionale)</div>
+      <input type="text" id="sgarroNote" placeholder="es. pizza serale, aperitivo…"
+        style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:#e6eef8;font-size:14px;">
+    </div>
+    <button class="save-btn" id="saveSgarroBtn" disabled onclick="saveSgarro()">Registra sgarro</button>
   </div>
 </div>
 
@@ -978,6 +1049,7 @@ function pillText(e){
   if(e.type==='wake') return '🌅 Wake';
   if(e.type==='bed') return '🌙 Bed';
   if(e.type==='exercise') return '🧘 '+((e.name||'').split(' ')[0]);
+  if(e.type==='sgarro') return '🍕 '+({'cibo':'Cibo','alcol':'Alcol','caffe':'Caffè','liquidi_serali':'Liquidi serali','stress':'Stress','altro':'Sgarro'}[e.sgarroType]||'Sgarro')+(e.note?' ('+e.note+')':'');
   return e.type;
 }
 
@@ -1144,15 +1216,13 @@ function openPeePopup(){
 }
 function resetPeePopup(){
   clearInterval(peeInterval); peeInterval=null;
-  peeState={duration:0,urgency:null,flow:null,emptying:null,pain_after:0};
+  peeState={duration:0,urgency:null,flow:null,emptying:null,pain_after:null};
   document.getElementById('peePhase1').style.display='';
   document.getElementById('peePhase2').style.display='none';
   document.getElementById('peeClock').textContent='00:00';
   document.getElementById('peeStateLabel').textContent='Premi START quando inizi';
   document.getElementById('peeStartBtn').style.display='';
   document.getElementById('peeStopBtn').style.display='none';
-  document.getElementById('pee-pain-slider').value=0;
-  document.getElementById('pee-pain-val').textContent='0';
   document.querySelectorAll('#peeOverlay .sel-btn').forEach(b=>b.classList.remove('selected'));
 }
 function peeTimerStart(){
@@ -1178,12 +1248,12 @@ function selPee(field,btn){
   if(field==='urgency') peeState.urgency=parseInt(btn.dataset.v);
   if(field==='flow') peeState.flow=btn.dataset.v;
   if(field==='emptying') peeState.emptying=btn.dataset.v;
+  if(field==='pain') peeState.pain_after=parseInt(btn.dataset.v);
 }
 function savePee(){
   const day=getDay(currentDate);
   const t=nowTime();
   const night=day.bed?t>=day.bed:false;
-  peeState.pain_after=parseInt(document.getElementById('pee-pain-slider').value)||0;
   day.events.push({time:t,type:'pee',duration:peeState.duration,
     urgency:peeState.urgency,flow:peeState.flow,emptying:peeState.emptying,
     pain_after:peeState.pain_after,night});
@@ -1191,13 +1261,13 @@ function savePee(){
 }
 
 /* ===================== POOP POPUP ===================== */
-let poopState={amount:null,emptying:null,bristol:null,pain_after:0};
+let poopState={amount:null,emptying:null,bristol:null,color:3,smell:null,pain_after:null};
 function openPoopPopup(){
-  poopState={amount:null,emptying:null,bristol:null,pain_after:0};
+  poopState={amount:null,emptying:null,bristol:null,color:3,smell:null,pain_after:null};
   document.querySelectorAll('#poopOverlay .sel-btn').forEach(b=>b.classList.remove('selected'));
-  document.getElementById('poop-pain-slider').value=0;
-  document.getElementById('poop-pain-val').textContent='0';
   document.querySelectorAll('.bristol-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('colorSlider').value=3;
+  updateColorSlider(3);
   openOverlay('poopOverlay');
 }
 function selPoop(field,btn){
@@ -1205,6 +1275,8 @@ function selPoop(field,btn){
   btn.classList.add('selected');
   if(field==='amount') poopState.amount=btn.dataset.v;
   if(field==='emptying') poopState.emptying=btn.dataset.v;
+  if(field==='smell') poopState.smell=btn.dataset.v;
+  if(field==='pain') poopState.pain_after=parseInt(btn.dataset.v);
 }
 function selBristol(btn,val){
   document.querySelectorAll('.bristol-btn').forEach(b=>b.classList.remove('selected'));
@@ -1215,11 +1287,36 @@ function savePoop(){
   const day=getDay(currentDate);
   const t=nowTime();
   const night=day.bed?t>=day.bed:false;
-  poopState.pain_after=parseInt(document.getElementById('poop-pain-slider').value)||0;
   day.events.push({time:t,type:'poop',amount:poopState.amount,
     emptying:poopState.emptying,bristol:poopState.bristol,
+    color:poopState.color,smell:poopState.smell,
     pain_after:poopState.pain_after,night});
   saveAll(); render(); closeOverlay('poopOverlay');
+}
+
+// Color slider for poop
+const COLOR_STOPS=[
+  {v:'#6b0f0f',l:'Rosso scuro ⚠️',note:'Possibile sangue — segnalare al medico'},
+  {v:'#7a2c10',l:'Rosso-marrone',note:'Transito veloce o tracce di sangue'},
+  {v:'#8B4513',l:'Marrone scuro',note:'Normale (transito lento)'},
+  {v:'#a0522d',l:'Marrone',note:'✓ Normale e sano'},
+  {v:'#c68642',l:'Marrone chiaro',note:'Normale'},
+  {v:'#d4a853',l:'Giallo-ocra',note:'Possibile problema digestivo'},
+  {v:'#b8a000',l:'Giallo',note:'Possibile problema fegato/bile'},
+  {v:'#4a7c00',l:'Verde',note:'Transito veloce o verdure'},
+  {v:'#d8d8d0',l:'Bianco/grigio ⚠️',note:'Possibile problema bile — segnalare al medico'},
+];
+function updateColorSlider(idx){
+  const i=parseInt(idx);
+  poopState.color=i;
+  const stop=COLOR_STOPS[i];
+  const thumb=document.getElementById('colorThumb');
+  const slider=document.getElementById('colorSlider');
+  const pct=i/(COLOR_STOPS.length-1);
+  const w=slider.parentElement.offsetWidth||300;
+  thumb.style.left=Math.round(pct*(w-34))+'px';
+  thumb.style.background=stop.v;
+  document.getElementById('colorLabel').textContent=stop.l+' — '+stop.note;
 }
 
 // Build Bristol grid
@@ -1235,6 +1332,30 @@ function buildBristol(){
     btn.onclick=()=>selBristol(btn,i+1);
     grid.appendChild(btn);
   });
+}
+
+/* ===================== SGARRO ===================== */
+let sgarroState={type:null};
+function openSgarroPopup(){
+  sgarroState={type:null};
+  document.querySelectorAll('#sgarroOverlay .sel-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('sgarroNote').value='';
+  document.getElementById('sgarroNoteSection').style.display='none';
+  document.getElementById('saveSgarroBtn').disabled=true;
+  openOverlay('sgarroOverlay');
+}
+function selSgarro(field,btn){
+  btn.closest('.btn-group').querySelectorAll('.sel-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  sgarroState.type=btn.dataset.v;
+  document.getElementById('sgarroNoteSection').style.display='block';
+  document.getElementById('saveSgarroBtn').disabled=false;
+}
+function saveSgarro(){
+  const day=getDay(currentDate);
+  const note=document.getElementById('sgarroNote').value.trim();
+  day.events.push({time:nowTime(),type:'sgarro',sgarroType:sgarroState.type,note});
+  saveAll(); render(); closeOverlay('sgarroOverlay');
 }
 
 /* ===================== EXERCISES ===================== */
@@ -1465,13 +1586,14 @@ document.getElementById('exerciseSelect').addEventListener('change',e=>{
 
 /* ===================== CSV ===================== */
 function exportCSV(){
-  const rows=['version:3','date,time,type,amount,duration,urgency,flow,emptying,pain_after,bristol,night,wb_m,wb_a,wb_e,wb_n,ex_name,ex_drop,ex_rest,ex_reps'];
+  const rows=['version:3','date,time,type,amount,duration,urgency,flow,emptying,pain_after,bristol,color,smell,sgarro_type,sgarro_note,night,wb_m,wb_a,wb_e,wb_n,ex_name,ex_drop,ex_rest,ex_reps'];
   for(const date in appData.days){
     const day=appData.days[date];
     const wb=day.wellbeing||{};
     (day.events||[]).forEach(e=>{
       rows.push([date,e.time,e.type,e.amount??'',e.duration??'',e.urgency??'',e.flow??'',
-        e.emptying??'',e.pain_after??'',e.bristol??'',e.night?1:'',
+        e.emptying??'',e.pain_after??'',e.bristol??'',e.color??'',e.smell??'',
+        e.sgarroType??'',e.note??'',e.night?1:'',
         wb.morning??'',wb.afternoon??'',wb.evening??'',wb.night??'',
         e.name??'',e.drop??'',e.rest??'',e.reps??''].map(csvE).join(','));
     });
@@ -1566,6 +1688,7 @@ if(isIOS&&!isStandalone){ document.getElementById('installCard').style.display='
 /* ===================== INIT ===================== */
 loadAll();
 buildBristol();
+updateColorSlider(3);
 refreshExercises();
 loadSettings();
 render();
