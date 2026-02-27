@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-<title>Pelvic Flow V3.2</title>
+<title>Pelvic Flow V3</title>
 <meta name="theme-color" content="#071029"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -123,28 +123,8 @@ body{background:linear-gradient(180deg,#071029 0%,#081827 60%);color:#e6eef8;min
 .event-pill.bed{background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.28);color:var(--purple);}
 .event-pill.exercise{background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.28);color:var(--purple);}
 .event-pill.sgarro{background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.28);color:var(--warn);}
-.event-pill.meal{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.22);color:var(--warn);}
 .event-pill.night{border-style:dashed;opacity:.85;}
 .event-pill.pee.night,.event-pill.poop.night{border-color:var(--danger);color:var(--danger);background:rgba(232,112,112,0.08);}
-.event-pill.meal{background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25);color:var(--warn);}
-
-/* DRAG & DROP */
-.event-pill.dragging{opacity:.4;transform:scale(.9);}
-.hour-row.drop-target{background:rgba(110,231,183,0.07);outline:1px dashed rgba(110,231,183,0.4);}
-.event-pill.moving{box-shadow:0 0 0 2px var(--accent);animation:pulse-pill .7s infinite alternate;}
-@keyframes pulse-pill{from{opacity:1}to{opacity:.55}}
-.drag-cancel-hint{font-size:11px;color:var(--accent);text-align:center;padding:6px;animation:fadeIn .3s;}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-
-/* NIGHT DIVIDER */
-.night-divider{display:flex;align-items:center;gap:8px;padding:6px 0;margin:2px 0;}
-.night-divider span{font-size:11px;color:var(--danger);font-weight:700;white-space:nowrap;}
-.night-divider::before,.night-divider::after{content:'';flex:1;height:1px;background:rgba(232,112,112,0.3);}
-
-/* HIDDEN ROWS (before wake) */
-.hour-row.hidden-slot{display:none;}
-.show-hidden-btn{font-size:11px;color:var(--muted);text-align:center;padding:4px;cursor:pointer;margin-bottom:2px;}
-.show-hidden-btn:hover{color:var(--accent);}
 
 /* POPUPS */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:flex-end;
@@ -246,6 +226,16 @@ body{background:linear-gradient(180deg,#071029 0%,#081827 60%);color:#e6eef8;min
 small.muted{font-size:11px;color:var(--muted);}
 .mt8{margin-top:8px;}
 .row{display:flex;gap:8px;align-items:center;}
+
+/* Night zone styles (v3.1) */
+.night-zone {
+  background: rgba(255,0,0,0.08);
+}
+.night-event {
+  background: #c62828 !important;
+  color: white !important;
+  border-color: #c62828 !important;
+}
 </style>
 </head>
 <body>
@@ -321,18 +311,14 @@ small.muted{font-size:11px;color:var(--muted);}
   <!-- QUICK ACTIONS -->
   <div class="card">
     <div class="card-title">Azioni rapide</div>
-    <div class="quick-grid" style="grid-template-columns:repeat(4,1fr);">
-      <button class="qbtn" onclick="recordWake()"><span class="emoji">🌅</span><span class="lbl">Sveglia</span></button>
-      <button class="qbtn" onclick="recordBed()"><span class="emoji">🌙</span><span class="lbl">Nanna</span></button>
-      <button class="qbtn accent" onclick="openInPopup()"><span class="emoji">💧</span><span class="lbl">Acqua</span></button>
+    <div class="quick-grid">
+      <button class="qbtn" onclick="recordWake()"><span class="emoji">🌅</span><span class="lbl">Wake</span></button>
+      <button class="qbtn" onclick="recordBed()"><span class="emoji">🌙</span><span class="lbl">Bed</span></button>
+      <button class="qbtn accent" onclick="openInPopup()"><span class="emoji">💧</span><span class="lbl">Bevi</span></button>
       <button class="qbtn accent" onclick="openPeePopup()"><span class="emoji">🚽</span><span class="lbl">Pipì</span></button>
-      <button class="qbtn" onclick="openPoopPopup()"><span class="emoji">💩</span><span class="lbl">Transito</span></button>
+      <button class="qbtn" onclick="openPoopPopup()"><span class="emoji">💩</span><span class="lbl">Cacca</span></button>
       <button class="qbtn" onclick="switchTab('esercizi')"><span class="emoji">🧘</span><span class="lbl">Esercizi</span></button>
-      <button class="qbtn" onclick="recordMeal('pranzo')"><span class="emoji">🍽</span><span class="lbl">Pranzo</span></button>
-      <button class="qbtn" onclick="recordMeal('cena')"><span class="emoji">🍷</span><span class="lbl">Cena</span></button>
-    </div>
-    <div style="margin-top:8px;text-align:center;">
-      <button class="qbtn" style="width:auto;padding:7px 18px;border-color:rgba(251,191,36,0.3);font-size:13px;" onclick="openSgarroPopup()">🍕 Sgarro</button>
+      <button class="qbtn" style="border-color:rgba(251,191,36,0.3);" onclick="openSgarroPopup()"><span class="emoji">🍕</span><span class="lbl">Sgarro</span></button>
     </div>
   </div>
 
@@ -389,9 +375,6 @@ small.muted{font-size:11px;color:var(--muted);}
       <button class="qbtn" style="padding:5px 10px;font-size:12px;" onclick="openPeePopup()">🚽</button>
       <button class="qbtn" style="padding:5px 10px;font-size:12px;" onclick="openPoopPopup()">💩</button>
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center;">
-      Tieni premuto un evento per spostarlo → tocca lo slot di destinazione
-    </div>
     <div class="hour-grid" id="hourGrid"></div>
   </div>
 </div>
@@ -447,6 +430,7 @@ small.muted{font-size:11px;color:var(--muted);}
   <div class="card">
     <div class="card-title">Piano giornaliero</div>
     <div class="settings-row"><label>🌅 Sveglia target</label><input class="settings-input" type="time" id="s-wake"></div>
+    <div class="settings-row"><label>🌙 Ora letto target</label><input class="settings-input" type="time" id="s-bed"></div>
     <div class="settings-row"><label>🍳 Colazione</label><input class="settings-input" type="time" id="s-breakfast"></div>
     <div class="settings-row"><label>🍽 Pranzo</label><input class="settings-input" type="time" id="s-lunch"></div>
     <div class="settings-row"><label>🍽 Cena</label><input class="settings-input" type="time" id="s-dinner"></div>
@@ -498,7 +482,7 @@ small.muted{font-size:11px;color:var(--muted);}
 <!-- ====== POPUP FLUID IN ====== -->
 <div class="overlay" id="inOverlay" onclick="closeOverlay('inOverlay',event)">
   <div class="popup" onclick="event.stopPropagation()">
-    <div class="popup-title">💧 Acqua / Idratazione <button class="popup-close" onclick="closeOverlay('inOverlay')">✕</button></div>
+    <div class="popup-title">💧 Fluid IN <button class="popup-close" onclick="closeOverlay('inOverlay')">✕</button></div>
     <div class="popup-section">
       <div class="popup-label">Quantità (ml)</div>
       <div class="btn-group" id="inAmtBtns">
@@ -576,7 +560,7 @@ small.muted{font-size:11px;color:var(--muted);}
 <!-- ====== POPUP POOP ====== -->
 <div class="overlay" id="poopOverlay" onclick="closeOverlay('poopOverlay',event)">
   <div class="popup" onclick="event.stopPropagation()">
-    <div class="popup-title">💩 Transito <button class="popup-close" onclick="closeOverlay('poopOverlay')">✕</button></div>
+    <div class="popup-title">💩 Cacca <button class="popup-close" onclick="closeOverlay('poopOverlay')">✕</button></div>
     <div class="popup-section">
       <div class="popup-label">Quantità</div>
       <div class="btn-group">
@@ -671,6 +655,28 @@ small.muted{font-size:11px;color:var(--muted);}
   </div>
 </div>
 
+<!-- ====== TIME EDIT POPUP (v3.2) ====== -->
+<div class="overlay" id="timeEditOverlay" onclick="closeOverlay('timeEditOverlay',event)">
+  <div class="popup" onclick="event.stopPropagation()">
+    <div class="popup-title">✏️ Modifica orario <button class="popup-close" onclick="closeOverlay('timeEditOverlay')">✕</button></div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:24px;padding:24px 0;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <button onclick="timeEditAdjust('h',1)" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:#e6eef8;border-radius:10px;padding:10px 20px;cursor:pointer;font-size:20px;width:60px;">▲</button>
+        <div id="teHour" style="font-size:40px;font-weight:900;color:var(--accent);min-width:60px;text-align:center;font-variant-numeric:tabular-nums;">00</div>
+        <button onclick="timeEditAdjust('h',-1)" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:#e6eef8;border-radius:10px;padding:10px 20px;cursor:pointer;font-size:20px;width:60px;">▼</button>
+      </div>
+      <div style="font-size:40px;font-weight:900;color:var(--muted);padding-bottom:4px;">:</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <button onclick="timeEditAdjust('m',10)" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:#e6eef8;border-radius:10px;padding:10px 20px;cursor:pointer;font-size:20px;width:60px;">▲</button>
+        <div id="teMin" style="font-size:40px;font-weight:900;color:var(--accent);min-width:60px;text-align:center;font-variant-numeric:tabular-nums;">00</div>
+        <button onclick="timeEditAdjust('m',-10)" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:#e6eef8;border-radius:10px;padding:10px 20px;cursor:pointer;font-size:20px;width:60px;">▼</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px;" id="teRange"></div>
+    <button class="save-btn" onclick="saveTimeEdit()">Salva orario</button>
+  </div>
+</div>
+
 <script>
 /* ===================== DATA STRUCTURE V3 ===================== */
 const STORE = 'pf_v3';
@@ -679,6 +685,7 @@ const DEF_SETTINGS = {
   plan: {
     wakeTarget:'07:00', breakfast:'08:00', lunch:'12:00',
     dinner:'18:00', stopDrinking:'19:00',
+    bedTarget:'23:00',
     peeIntervalHours:2, drinkIntervalHours:1, glassml:200,
     exerciseDaily:true, poopDaily:true, scoringThreshold:65
   },
@@ -761,13 +768,16 @@ function initDay(date){
 function getDay(date){ initDay(date); return appData.days[date]; }
 
 /* ===================== DATE NAV ===================== */
-let currentDate = localStorage.getItem('pf_last_date')||new Date().toISOString().slice(0,10);
+let manualNavActive = false;
+// currentDate is set after loadAll() in INIT section below
+let currentDate = new Date().toISOString().slice(0,10); // temp; overridden at init
 
 function setCurrentDate(d){
   currentDate=d; localStorage.setItem('pf_last_date',d); render();
 }
-function prevDay(){ const d=new Date(currentDate); d.setDate(d.getDate()-1); setCurrentDate(d.toISOString().slice(0,10)); }
-function nextDay(){ const d=new Date(currentDate); d.setDate(d.getDate()+1); setCurrentDate(d.toISOString().slice(0,10)); }
+function prevDay(){ manualNavActive=true; const d=new Date(currentDate+'T12:00:00'); d.setDate(d.getDate()-1); setCurrentDate(d.toISOString().slice(0,10)); }
+function nextDay(){ manualNavActive=true; const d=new Date(currentDate+'T12:00:00'); d.setDate(d.getDate()+1); setCurrentDate(d.toISOString().slice(0,10)); }
+function goToActiveDay(){ manualNavActive=false; setCurrentDate(computeActiveDay()); }
 function nowTime(){ return new Date().toTimeString().slice(0,5); }
 function timeToMin(t){ if(!t) return 0; const [h,m]=t.split(':').map(Number); return h*60+m; }
 function fmtDate(ds){
@@ -781,28 +791,235 @@ function fmtDate(ds){
   return days[d.getDay()]+' '+d.getDate()+' '+months[d.getMonth()];
 }
 
+/* ===================== V3.2 WAKE-BASED DAY ENGINE ===================== */
+
+/* --- Core absolute-time normalizer ---
+   All boundary comparisons MUST use this.
+   Events after midnight (rawMin < wakeStartMin) get +1440 so they
+   sort correctly within the extended wake-based day. */
+function toAbsoluteMinutes(timeStr, wakeStartStr){
+  const eMin=timeToMin(timeStr);
+  const wsMin=timeToMin(wakeStartStr);
+  return eMin < wsMin ? eMin + 1440 : eMin;
+}
+
+/* Convert absolute minutes back to storable "HH:MM" */
+function absToTime(absMin){
+  const real=absMin % 1440;
+  const h=Math.floor(real/60), m=real%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+
+/* Date arithmetic helper */
+function getDateOffset(date, offset){
+  const d=new Date(date+'T12:00:00'); d.setDate(d.getDate()+offset);
+  return d.toISOString().slice(0,10);
+}
+
+/* effectiveWake – may call initDay; use only when date is active context */
+function effectiveWake(date){
+  const day=getDay(date); // may init
+  return (day.wake) ? day.wake : (appData.settings.plan.wakeTarget||'07:00');
+}
+
+/* effectiveWakeReadOnly – pure read, never creates day entry */
+function effectiveWakeReadOnly(date){
+  const day=appData.days[date];
+  if(day && day.wake) return day.wake;
+  return appData.settings.plan.wakeTarget||'07:00';
+}
+
+/* effectiveBed – pure read */
+function effectiveBed(date){
+  const day=appData.days[date];
+  if(day && day.bed) return day.bed;
+  return appData.settings.plan.bedTarget||'23:00';
+}
+
+/* Compute wakeNextAbs: end of day D in D's absolute-minute space */
+function computeWakeNextAbs(date, wakeStartStr){
+  const wsMin=timeToMin(wakeStartStr);
+  const nextDate=getDateOffset(date,1);
+  const wnMin=timeToMin(effectiveWakeReadOnly(nextDate));
+  // Always > wakeStartMin (even if same time = full 1440-min day)
+  return wnMin <= wsMin ? wnMin + 1440 : wnMin;
+}
+
+/* Night flag for a single event using effective bed */
+function computeNightFlag(event, date){
+  if(event.type!=='pee' && event.type!=='poop') return false;
+  const ws=effectiveWakeReadOnly(date);
+  const bedStr=effectiveBed(date);
+  const bedAbs=toAbsoluteMinutes(bedStr, ws);
+  const eAbs=toAbsoluteMinutes(event.time, ws);
+  return eAbs >= bedAbs;
+}
+
+/* Recalculate night flags for all events in a day */
+function recalcNightFlagsForDay(date){
+  if(!appData.days[date]) return;
+  appData.days[date].events.forEach(e=>{ e.night=computeNightFlag(e,date); });
+}
+
+/* Sync day.wake and day.bed shortcuts from the events array */
+function syncWakeBed(date){
+  if(!appData.days[date]) return;
+  const day=appData.days[date];
+  const wEv=day.events.find(e=>e.type==='wake');
+  const bEv=day.events.find(e=>e.type==='bed');
+  day.wake=wEv?wEv.time:null;
+  day.bed=bEv?bEv.time:null;
+}
+
+/* Core engine: called whenever wake/bed changes or events are manually edited.
+   Reassigns events across D-1, D, D+1 using absolute-minute boundaries.
+   Never mutates D+1 unless an event actually needs to move there. */
+function recomputeDayBoundaries(date){
+  const prevDate=getDateOffset(date,-1);
+  const nextDate=getDateOffset(date,1);
+
+  const wakeStart=effectiveWake(date);   // may initDay(date)
+  const wsMin=timeToMin(wakeStart);
+  const wakeNextAbs=computeWakeNextAbs(date,wakeStart);
+
+  const dayD=getDay(date);
+
+  // --- Scan D.events only (spec v3.3 §4) ---
+  // Rule 1: rawMin < wsMin  → ALWAYS move to D-1 (pre-wake, never forward)
+  // Rule 2: rawMin >= wsMin AND abs >= wakeNextAbs → move to D+1
+  // No fromPrevToD pull — that caused late-wake forward-movement bug.
+  const toMoveToPrev=[];
+  const toMoveToNext=[];
+
+  dayD.events.forEach(e=>{
+    const rawMin=timeToMin(e.time);
+    if(rawMin < wsMin){
+      // Pre-wake time: belongs to previous day — ALWAYS backward, NEVER forward
+      toMoveToPrev.push(e);
+    } else {
+      // Post-wake time: check if it overruns into D+1
+      const eAbs=toAbsoluteMinutes(e.time, wakeStart);
+      if(eAbs >= wakeNextAbs){
+        toMoveToNext.push(e);
+      }
+    }
+  });
+
+  // --- Execute moves D → D-1 ---
+  toMoveToPrev.forEach(e=>{
+    const idx=dayD.events.indexOf(e);
+    if(idx>=0) dayD.events.splice(idx,1);
+    initDay(prevDate);
+    appData.days[prevDate].events.push(e);
+  });
+
+  // --- Execute moves D → D+1 ---
+  toMoveToNext.forEach(e=>{
+    const idx=dayD.events.indexOf(e);
+    if(idx>=0) dayD.events.splice(idx,1);
+    const dayNext=getDay(nextDate);
+    dayNext.events.push(e);
+  });
+
+  // --- Sync shortcuts and recalculate night flags ---
+  syncWakeBed(prevDate);
+  syncWakeBed(date);
+  if(toMoveToNext.length) syncWakeBed(nextDate);
+
+  recalcNightFlagsForDay(prevDate);
+  recalcNightFlagsForDay(date);
+  if(toMoveToNext.length) recalcNightFlagsForDay(nextDate);
+
+  saveAll();
+}
+
+/* Called from saveSettings — only recomputes days without explicit wake */
+function recomputeAllAffectedDays(){
+  for(const date in appData.days){
+    const day=appData.days[date];
+    if(!day.wake){
+      // Uses wakeTarget; target changed → recalculate
+      recomputeDayBoundaries(date);
+    }
+  }
+}
+
+/* Determine the active wake-based day (side-effect free).
+   Returns yesterday if current time is before today's effectiveWake. */
+function computeActiveDay(){
+  const todayDate=new Date().toISOString().slice(0,10);
+  const wsToday=effectiveWakeReadOnly(todayDate);
+  const nowMin=timeToMin(nowTime());
+  const wsMin=timeToMin(wsToday);
+  if(nowMin < wsMin){
+    const y=new Date(); y.setDate(y.getDate()-1);
+    return y.toISOString().slice(0,10);
+  }
+  return todayDate;
+}
+
+/* ===================== TIME EDIT POPUP (v3.2) ===================== */
+let _teEvent=null, _teDateStr=null, _teAbsMin=0, _teWsMin=0, _teMaxAbs=0;
+
+function openTimeEditPopup(eventRef, date){
+  _teEvent=eventRef; _teDateStr=date;
+  const ws=effectiveWake(date);
+  _teWsMin=timeToMin(ws);
+  const wna=computeWakeNextAbs(date,ws);
+  _teMaxAbs=wna-10;
+  _teAbsMin=toAbsoluteMinutes(eventRef.time, ws);
+  _teAbsMin=Math.max(_teWsMin, Math.min(_teMaxAbs, _teAbsMin));
+  // Show allowed range
+  const rng=document.getElementById('teRange');
+  if(rng) rng.textContent='Intervallo: '+ws+' – '+absToTime(_teMaxAbs);
+  _updateTeDisplay();
+  openOverlay('timeEditOverlay');
+}
+
+function _updateTeDisplay(){
+  const real=_teAbsMin%1440;
+  const h=Math.floor(real/60), m=real%60;
+  document.getElementById('teHour').textContent=String(h).padStart(2,'0');
+  document.getElementById('teMin').textContent=String(m).padStart(2,'0');
+}
+
+function timeEditAdjust(field, delta){
+  let nv=_teAbsMin+(field==='h'?delta*60:delta);
+  nv=Math.max(_teWsMin, Math.min(_teMaxAbs, nv));
+  _teAbsMin=nv; _updateTeDisplay();
+}
+
+function saveTimeEdit(){
+  if(!_teEvent) return;
+  _teEvent.time=absToTime(_teAbsMin%1440);
+  if(_teEvent.type==='wake'){ getDay(_teDateStr).wake=_teEvent.time; }
+  if(_teEvent.type==='bed'){ getDay(_teDateStr).bed=_teEvent.time; }
+  recomputeDayBoundaries(_teDateStr);
+  saveAll(); render();
+  closeOverlay('timeEditOverlay');
+  _teEvent=null; _teDateStr=null;
+}
+
 /* ===================== QUICK ACTIONS ===================== */
 function recordWake(){
   const day=getDay(currentDate);
-  day.wake=nowTime();
+  if(day.wake) return; // spec §10: only 1 wake per day
+  const t=nowTime();
+  day.wake=t;
   day.events=day.events.filter(e=>e.type!=='wake');
-  day.events.push({time:nowTime(),type:'wake'});
+  day.events.push({time:t,type:'wake'});
+  recomputeDayBoundaries(currentDate);
   saveAll(); render();
 }
 function recordBed(){
   const day=getDay(currentDate);
-  day.bed=nowTime();
+  if(day.bed) return; // spec §10: only 1 bed per day
+  const t=nowTime();
+  day.bed=t;
   day.events=day.events.filter(e=>e.type!=='bed');
-  day.events.push({time:nowTime(),type:'bed'});
+  day.events.push({time:t,type:'bed'});
+  recalcNightFlagsForDay(currentDate);
   saveAll(); render();
-}
-
-function recordMeal(type){
-  const day=getDay(currentDate);
-  day.events.push({time:nowTime(),type:'meal',mealType:type});
-  saveAll(); render();
-  // Quick haptic feedback
-  if(navigator.vibrate) navigator.vibrate(20);
 }
 
 /* ===================== WELLBEING ===================== */
@@ -918,6 +1135,12 @@ function render(){
   const label=fmtDate(currentDate);
   document.getElementById('dateLabel').textContent=label;
   document.getElementById('dateLabel2').textContent=label;
+  // spec §10: disable wake/bed buttons if already logged for this day
+  const day=getDay(currentDate);
+  const wakeBtn=document.querySelector('.qbtn[onclick="recordWake()"]');
+  const bedBtn=document.querySelector('.qbtn[onclick="recordBed()"]');
+  if(wakeBtn) wakeBtn.disabled=!!day.wake;
+  if(bedBtn) bedBtn.disabled=!!day.bed;
   renderHomeStats();
   loadWbSliders();
   renderHourGrid();
@@ -979,7 +1202,22 @@ function renderHomeStats(){
   else sb.style.color='var(--muted)';
 }
 
+/* ===================== DRAG STATE (v3.1) ===================== */
+let _dragSrcEvent=null;
+let _dragSrcDate=null;
+
+function getPrevDate(date){
+  const d=new Date(date+'T12:00:00'); d.setDate(d.getDate()-1);
+  return d.toISOString().slice(0,10);
+}
+
+function recalculateNightStatus(event, date){
+  // v3.2: delegate to wake-based computeNightFlag
+  event.night=computeNightFlag(event, date||currentDate);
+}
+
 /* ===================== HOUR GRID ===================== */
+// Plan markers: map time → hint text
 function getPlanMarkers(){
   const p=appData.settings.plan;
   const markers={};
@@ -988,7 +1226,8 @@ function getPlanMarkers(){
   add(p.breakfast,'🍳 Colazione');
   add(p.lunch,'🍽 Pranzo');
   add(p.dinner,'🍽 Cena');
-  add(p.stopDrinking,'🛑 Stop acqua');
+  add(p.stopDrinking,'🛑 Stop liquidi');
+  // Drink intervals
   if(p.drinkIntervalHours){
     for(let h=7;h<=18;h+=p.drinkIntervalHours){
       const hh=Math.floor(h); const mm=Math.round((h-hh)*60);
@@ -1006,76 +1245,106 @@ function setGridInterval(n){
   renderHourGrid();
 }
 
-// Drag state
-let dragState={active:false,eventObj:null,realIdx:null};
-
+/* ===================== HOUR GRID ===================== */
 function renderHourGrid(){
   const container=document.getElementById('hourGrid');
   container.innerHTML='';
   const day=getDay(currentDate);
-  const events=[...day.events].sort((a,b)=>a.time.localeCompare(b.time));
+
+  // v3.3: use effectiveWake/effectiveBed
+  const wakeStart=effectiveWake(currentDate);
+  const wsMin=timeToMin(wakeStart);
+  const wakeNextAbs=computeWakeNextAbs(currentDate, wakeStart);
+
+  const bedStr=effectiveBed(currentDate);
+  const bedAbs=toAbsoluteMinutes(bedStr, wakeStart);
+
+  const events=[...day.events].sort((a,b)=>{
+    return toAbsoluteMinutes(a.time,wakeStart)-toAbsoluteMinutes(b.time,wakeStart);
+  });
   const planMarkers=getPlanMarkers();
-  const totalSlots=(24*60)/gridInterval;
 
-  // Determine visible range
-  const wakeMin=day.wake?timeToMin(day.wake):timeToMin(appData.settings.plan.wakeTarget||'07:00');
-  const bedMin=day.bed?timeToMin(day.bed):null;
+  // v3.3 §5: grid ALWAYS spans [wakeStart, wakeNext) — bed does NOT truncate it.
+  // Bed only controls red zone start and night flags.
+  const endAbs=wakeNextAbs;
 
-  // Build slot map
-  const slotMap={};
-  for(let i=0;i<totalSlots;i++){
-    const min=i*gridInterval;
-    const h=Math.floor(min/60), m=min%60;
-    const key=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
-    slotMap[key]={events:[],min};
+  // Build slots: full wake-based day
+  const startAbs=Math.floor(wsMin/gridInterval)*gridInterval;
+  const slots=[];
+  for(let absM=startAbs; absM<endAbs; absM+=gridInterval){
+    const realMin=absM%1440;
+    const h=Math.floor(realMin/60), mm=realMin%60;
+    const key=String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+    const isNightSlot=absM>=bedAbs;
+    slots.push({absMin:absM, realMin, key, isNightSlot});
   }
+
+  // Map events to slots using absolute minutes
+  const slotMap={};
+  slots.forEach(s=>{ slotMap[s.absMin]=[]; });
+
   events.forEach(e=>{
-    const [eh,em]=e.time.split(':').map(Number);
-    const slotMin=Math.floor((eh*60+em)/gridInterval)*gridInterval;
-    const h=Math.floor(slotMin/60),m=slotMin%60;
-    const key=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
-    if(slotMap[key]) slotMap[key].events.push(e);
+    const eAbs=toAbsoluteMinutes(e.time,wakeStart);
+    if(eAbs<startAbs || eAbs>=endAbs) return;
+    const slotAbs=Math.floor(eAbs/gridInterval)*gridInterval;
+    if(slotMap[slotAbs]!==undefined) slotMap[slotAbs].push(e);
   });
 
-  // Count hidden slots
-  let hiddenCount=0;
-  for(const [time,slot] of Object.entries(slotMap)){
-    if(slot.min<wakeMin && slot.events.length===0) hiddenCount++;
-  }
-  if(hiddenCount>0){
-    const btn=document.createElement('div');
-    btn.className='show-hidden-btn';
-    btn.id='showHiddenBtn';
-    btn.textContent='▲ Mostra '+hiddenCount+' ore notturne precedenti';
-    btn.onclick=()=>{ document.querySelectorAll('.hour-row.hidden-slot').forEach(r=>r.classList.remove('hidden-slot')); btn.remove(); };
-    container.appendChild(btn);
-  }
+  // v3.3 §6: bed label slot (absolute minutes, rounded down to grid interval)
+  const bedSlotAbs=Math.floor(bedAbs/gridInterval)*gridInterval;
 
-  let bedDividerAdded=false;
-
-  for(const [time,slot] of Object.entries(slotMap)){
-    const {min,events:evts}=slot;
-    const isBeforeWake=min<wakeMin && evts.length===0;
-    const isAfterBed=bedMin!==null && min>=bedMin;
-
-    // Night divider: first slot >= bed time
-    if(bedMin!==null && !bedDividerAdded && min>=bedMin){
-      bedDividerAdded=true;
-      const div=document.createElement('div');
-      div.className='night-divider';
-      div.innerHTML='<span>🌙 Notte (dopo le '+day.bed+')</span>';
-      container.appendChild(div);
-    }
-
-    const hint=planMarkers[time];
+  // Render slots
+  slots.forEach(({absMin, realMin, key, isNightSlot})=>{
+    const hint=planMarkers[key];
+    // v3.3 §6: add bed hint at the bed-slot boundary
+    const isBedSlot=(absMin===bedSlotAbs);
     const row=document.createElement('div');
-    row.className='hour-row'+(hint?' plan-marker':'')+(isBeforeWake?' hidden-slot':'');
-    row.dataset.slotTime=time;
-    row.dataset.slotMin=min;
+    row.className='hour-row'+(hint||isBedSlot?' plan-marker':'')+(isNightSlot?' night-zone':'');
+    row.dataset.absMin=absMin;
+    row.dataset.slotKey=key;
+
+    // Drop target handlers
+    row.addEventListener('dragover',ev=>{ev.preventDefault();ev.dataTransfer.dropEffect='move';});
+    row.addEventListener('drop',ev=>{
+      ev.preventDefault();
+      if(!_dragSrcEvent||!_dragSrcDate) return;
+      const tgtAbs=parseInt(row.dataset.absMin);
+      const newTime=absToTime(tgtAbs%1440);
+
+      if(tgtAbs < wsMin){
+        // Before wakeStart → move to D-1
+        const srcDay=getDay(_dragSrcDate);
+        const idx=srcDay.events.indexOf(_dragSrcEvent);
+        if(idx>=0) srcDay.events.splice(idx,1);
+        const prevDateStr=getPrevDate(currentDate);
+        _dragSrcEvent.time=newTime;
+        recalculateNightStatus(_dragSrcEvent, prevDateStr);
+        getDay(prevDateStr).events.push(_dragSrcEvent);
+        syncWakeBed(_dragSrcDate); syncWakeBed(prevDateStr);
+        recalcNightFlagsForDay(prevDateStr);
+      } else if(tgtAbs >= wakeNextAbs){
+        // Beyond wakeNext → move to D+1
+        const srcDay=getDay(_dragSrcDate);
+        const idx=srcDay.events.indexOf(_dragSrcEvent);
+        if(idx>=0) srcDay.events.splice(idx,1);
+        const nextDateStr=getDateOffset(currentDate,1);
+        _dragSrcEvent.time=newTime;
+        getDay(nextDateStr).events.push(_dragSrcEvent);
+        syncWakeBed(_dragSrcDate); syncWakeBed(nextDateStr);
+        recalcNightFlagsForDay(nextDateStr);
+        recalcNightFlagsForDay(_dragSrcDate);
+      } else {
+        // Same day
+        _dragSrcEvent.time=newTime;
+        recalculateNightStatus(_dragSrcEvent, _dragSrcDate);
+      }
+      _dragSrcEvent=null; _dragSrcDate=null;
+      saveAll(); render();
+    });
 
     const lbl=document.createElement('div');
     lbl.className='hour-label';
-    lbl.textContent=time;
+    lbl.textContent=key;
 
     const evtsDiv=document.createElement('div');
     evtsDiv.className='hour-events';
@@ -1087,107 +1356,76 @@ function renderHourGrid(){
       evtsDiv.appendChild(ph);
     }
 
+    // v3.3 §6: bed target label (visual only, no structural effect)
+    if(isBedSlot && !hint){
+      const bh=document.createElement('span');
+      bh.className='plan-hint';
+      bh.textContent='🌙 '+(day.bed ? 'Letto: '+bedStr : 'Letto target: '+bedStr);
+      evtsDiv.appendChild(bh);
+    } else if(isBedSlot && hint){
+      const bh=document.createElement('span');
+      bh.className='plan-hint';
+      bh.textContent=' 🌙 '+(day.bed ? bedStr : '(target '+bedStr+')');
+      evtsDiv.appendChild(bh);
+    }
+
+    const evts=slotMap[absMin]||[];
     evts.forEach(e=>{
       const eIdx=events.indexOf(e);
-      const pill=createPill(e,eIdx,isAfterBed);
+      const pill=document.createElement('div');
+      const isNightPill=e.night;
+      let pillClass='event-pill '+e.type+(e.night?' night':'')+(isNightPill?' night-event':'');
+      pill.className=pillClass;
+      pill.draggable=true;
+      pill.innerHTML=pillText(e)+' <span class="del-x" onclick="deleteEvent('+eIdx+',event)">✕</span>';
+
+      // Long-press support for mobile (500ms)
+      let pressTimer=null;
+      pill.addEventListener('touchstart',()=>{
+        pressTimer=setTimeout(()=>{ _dragSrcEvent=e; _dragSrcDate=currentDate; },500);
+      },{passive:true});
+      pill.addEventListener('touchend',()=>clearTimeout(pressTimer));
+      pill.addEventListener('touchmove',()=>clearTimeout(pressTimer));
+
+      pill.addEventListener('dragstart',ev=>{
+        _dragSrcEvent=e;
+        _dragSrcDate=currentDate;
+        ev.dataTransfer.effectAllowed='move';
+      });
+      pill.addEventListener('dragend',()=>{
+        _dragSrcEvent=null; _dragSrcDate=null;
+      });
+
+      pill.addEventListener('click',ev=>{
+        if(!ev.target.classList.contains('del-x')) editEventTime(eIdx);
+      });
       evtsDiv.appendChild(pill);
     });
-
-    // Drop target click handler
-    row.addEventListener('click',()=>handleDropTarget(row,time));
 
     row.appendChild(lbl);
     row.appendChild(evtsDiv);
     container.appendChild(row);
-  }
-
-  // If drag active, show cancel hint
-  if(dragState.active){
-    const hint=document.createElement('div');
-    hint.className='drag-cancel-hint';
-    hint.textContent='Tap su uno slot per spostare · Tap qui per annullare ↓';
-    hint.onclick=cancelDrag;
-    container.appendChild(hint);
-    document.querySelectorAll('.hour-row').forEach(r=>r.classList.add('drop-target'));
-  }
-}
-
-function createPill(e,eIdx,isNightSlot){
-  const pill=document.createElement('div');
-  const isNight=e.night||isNightSlot;
-  pill.className='event-pill '+e.type+(isNight?' night':'');
-  if(dragState.active && dragState.realIdx===eIdx) pill.classList.add('moving');
-  pill.innerHTML=pillText(e)+' <span class="del-x" onclick="deleteEvent('+eIdx+',event)">✕</span>';
-
-  // Tap: if drag mode active, ignore (handled by row); else edit time
-  pill.addEventListener('click',(ev)=>{
-    if(ev.target.classList.contains('del-x')) return;
-    if(dragState.active){ ev.stopPropagation(); return; }
-    editEventTime(eIdx);
   });
-
-  // Long press to enter drag mode
-  let longPressTimer=null;
-  pill.addEventListener('pointerdown',()=>{
-    longPressTimer=setTimeout(()=>{ startDrag(e,eIdx); },500);
-  });
-  pill.addEventListener('pointerup',()=>clearTimeout(longPressTimer));
-  pill.addEventListener('pointercancel',()=>clearTimeout(longPressTimer));
-  pill.addEventListener('pointermove',()=>clearTimeout(longPressTimer));
-
-  return pill;
-}
-
-function startDrag(e,eIdx){
-  if(navigator.vibrate) navigator.vibrate(40);
-  dragState={active:true,eventObj:e,realIdx:eIdx};
-  renderHourGrid();
-}
-
-function handleDropTarget(row,newTime){
-  if(!dragState.active) return;
-  const e=dragState.eventObj;
-  if(!e) return;
-  const day=getDay(currentDate);
-  const realE=day.events.find(ev=>ev===e);
-  if(!realE){ cancelDrag(); return; }
-
-  // Use slot start time (on-the-hour)
-  realE.time=newTime;
-  if(realE.type==='pee'||realE.type==='poop'){
-    realE.night=day.bed?newTime>=day.bed:false;
-  }
-  if(realE.type==='wake') day.wake=newTime;
-  if(realE.type==='bed') day.bed=newTime;
-
-  dragState={active:false,eventObj:null,realIdx:null};
-  saveAll(); render();
-}
-
-function cancelDrag(){
-  dragState={active:false,eventObj:null,realIdx:null};
-  renderHourGrid();
 }
 
 function pillText(e){
-  if(e.type==='in') return '💧'+(e.amount||'?')+'ml';
+  if(e.type==='in') return (e.amount||'?')+'ml ↓';
   if(e.type==='pee'){
     let t='🚽';
     if(e.duration) t+=' '+e.duration+'s';
     if(e.urgency!=null) t+=' U'+e.urgency;
     if(e.flow) t+=' '+e.flow.charAt(0).toUpperCase();
-    if(e.pain_after!=null) t+=' 😣'+e.pain_after;
+    if(e.pain_after) t+=' 😣'+e.pain_after;
     return t;
   }
   if(e.type==='poop'){
     let t='💩';
     if(e.amount) t+=' '+e.amount;
-    if(e.pain_after!=null) t+=' 😣'+e.pain_after;
+    if(e.pain_after) t+=' 😣'+e.pain_after;
     return t;
   }
-  if(e.type==='wake') return '🌅 Sveglia';
-  if(e.type==='bed') return '🌙 Nanna';
-  if(e.type==='meal') return (e.mealType==='pranzo'?'🍽 Pranzo':'🍷 Cena');
+  if(e.type==='wake') return '🌅 Wake';
+  if(e.type==='bed') return '🌙 Bed';
   if(e.type==='exercise') return '🧘 '+((e.name||'').split(' ')[0]);
   if(e.type==='sgarro') return '🍕 '+({'cibo':'Cibo','alcol':'Alcol','caffe':'Caffè','liquidi_serali':'Liquidi serali','stress':'Stress','altro':'Sgarro'}[e.sgarroType]||'Sgarro')+(e.note?' ('+e.note+')':'');
   return e.type;
@@ -1196,32 +1434,31 @@ function pillText(e){
 function deleteEvent(idx, clickEvent){
   clickEvent && clickEvent.stopPropagation();
   const day=getDay(currentDate);
-  const sorted=[...day.events].sort((a,b)=>a.time.localeCompare(b.time));
+  const wakeStart=effectiveWake(currentDate);
+  const sorted=[...day.events].sort((a,b)=>
+    toAbsoluteMinutes(a.time,wakeStart)-toAbsoluteMinutes(b.time,wakeStart)
+  );
   const e=sorted[idx];
   if(!e) return;
   const realIdx=day.events.indexOf(e);
   if(realIdx<0) return;
   if(!confirm('Eliminare questo evento?')) return;
   day.events.splice(realIdx,1);
-  if(e.type==='wake') day.wake=null;
-  if(e.type==='bed') day.bed=null;
+  if(e.type==='wake'){ day.wake=null; recomputeDayBoundaries(currentDate); }
+  else if(e.type==='bed'){ day.bed=null; recalcNightFlagsForDay(currentDate); }
   saveAll(); render();
 }
 
 function editEventTime(idx){
   const day=getDay(currentDate);
-  const sorted=[...day.events].sort((a,b)=>a.time.localeCompare(b.time));
+  const wakeStart=effectiveWake(currentDate);
+  const sorted=[...day.events].sort((a,b)=>
+    toAbsoluteMinutes(a.time,wakeStart)-toAbsoluteMinutes(b.time,wakeStart)
+  );
   const e=sorted[idx];
   if(!e) return;
-  const newT=prompt('Modifica orario (HH:MM)',e.time);
-  if(newT&&/^\d{2}:\d{2}$/.test(newT)){
-    e.time=newT;
-    if(e.type==='pee'||e.type==='poop'){
-      const bed=getDay(currentDate).bed;
-      e.night=bed?newT>=bed:false;
-    }
-    saveAll(); render();
-  }
+  // v3.2: spinner popup instead of prompt (spec §9)
+  openTimeEditPopup(e, currentDate);
 }
 
 /* ===================== CHART ===================== */
@@ -1342,9 +1579,7 @@ function saveIn(){
   if(!inState.amount) return;
   const day=getDay(currentDate);
   day.events.push({time:nowTime(),type:'in',amount:inState.amount});
-  saveAll(); render();
-  resetDrinkTimer(); // reset reminder countdown
-  closeOverlay('inOverlay');
+  saveAll(); render(); closeOverlay('inOverlay');
 }
 
 /* ===================== PEE POPUP ===================== */
@@ -1395,13 +1630,11 @@ function selPee(field,btn){
 function savePee(){
   const day=getDay(currentDate);
   const t=nowTime();
-  const night=day.bed?t>=day.bed:false;
+  const night=computeNightFlag({time:t,type:'pee'}, currentDate);
   day.events.push({time:t,type:'pee',duration:peeState.duration,
     urgency:peeState.urgency,flow:peeState.flow,emptying:peeState.emptying,
     pain_after:peeState.pain_after,night});
-  saveAll(); render();
-  resetPeeTimer(); // reset reminder countdown
-  closeOverlay('peeOverlay');
+  saveAll(); render(); closeOverlay('peeOverlay');
 }
 
 /* ===================== POOP POPUP ===================== */
@@ -1430,7 +1663,7 @@ function selBristol(btn,val){
 function savePoop(){
   const day=getDay(currentDate);
   const t=nowTime();
-  const night=day.bed?t>=day.bed:false;
+  const night=computeNightFlag({time:t,type:'poop'}, currentDate);
   day.events.push({time:t,type:'poop',amount:poopState.amount,
     emptying:poopState.emptying,bristol:poopState.bristol,
     color:poopState.color,smell:poopState.smell,
@@ -1620,6 +1853,7 @@ function renderSessionLog(){
 function loadSettings(){
   const p=appData.settings.plan;
   document.getElementById('s-wake').value=p.wakeTarget||'07:00';
+  document.getElementById('s-bed').value=p.bedTarget||'23:00';
   document.getElementById('s-breakfast').value=p.breakfast||'08:00';
   document.getElementById('s-lunch').value=p.lunch||'12:00';
   document.getElementById('s-dinner').value=p.dinner||'18:00';
@@ -1640,6 +1874,7 @@ function toggleSetting(key,toggleId){
 function saveSettings(){
   const p=appData.settings.plan;
   p.wakeTarget=document.getElementById('s-wake').value;
+  p.bedTarget=document.getElementById('s-bed').value;
   p.breakfast=document.getElementById('s-breakfast').value;
   p.lunch=document.getElementById('s-lunch').value;
   p.dinner=document.getElementById('s-dinner').value;
@@ -1648,143 +1883,72 @@ function saveSettings(){
   p.drinkIntervalHours=parseFloat(document.getElementById('s-drinkInt').value)||1;
   p.glassml=parseInt(document.getElementById('s-glassml').value)||200;
   p.scoringThreshold=parseInt(document.getElementById('s-threshold').value)||65;
-  saveAll(); render();
+  saveAll();
+  // spec §12: only recompute days without explicit wake (targets changed, not events)
+  recomputeAllAffectedDays();
+  render();
   alert('✓ Impostazioni salvate!');
 }
 
 /* ===================== NOTIFICATIONS ===================== */
-// Track last times to reset reminders correctly
-let lastDrinkTime=0;  // ms timestamp
-let lastPeeTime=0;
-
-let notifCheckInterval=null;
-
+let notifIntervals=[];
 function toggleNotifications(){
   const cur=appData.settings.notifications;
   if(!cur){
-    if('Notification' in window && Notification.permission!=='granted'){
+    if('Notification' in window){
       Notification.requestPermission().then(perm=>{
-        if(perm==='granted'){ enableNotifications(); }
-        else { alert('Permesso notifiche negato. Attivale dalle impostazioni del browser.'); }
+        if(perm==='granted'){
+          appData.settings.notifications=true;
+          setToggle('t-notif',true);
+          saveAll(); startReminders();
+        }
       });
-    } else { enableNotifications(); }
+    } else {
+      appData.settings.notifications=true;
+      setToggle('t-notif',true);
+      saveAll(); startReminders();
+    }
   } else {
     appData.settings.notifications=false;
     setToggle('t-notif',false);
     saveAll(); stopReminders();
   }
 }
-function enableNotifications(){
-  appData.settings.notifications=true;
-  setToggle('t-notif',true);
-  saveAll(); startReminders();
-}
-
 function startReminders(){
   stopReminders();
-  // Init last times from today's events
-  const day=getDay(currentDate);
-  const drinks=day.events.filter(e=>e.type==='in').map(e=>todayTs(e.time)).sort((a,b)=>b-a);
-  const pees=day.events.filter(e=>e.type==='pee').map(e=>todayTs(e.time)).sort((a,b)=>b-a);
-  lastDrinkTime=drinks.length?drinks[0]:Date.now();
-  lastPeeTime=pees.length?pees[0]:Date.now();
-
-  // Check every 30 seconds (efficient)
-  notifCheckInterval=setInterval(checkReminders,30000);
+  const drinkMs=(appData.settings.plan.drinkIntervalHours||1)*3600*1000;
+  const peeMs=(appData.settings.plan.peeIntervalHours||2)*3600*1000;
+  notifIntervals.push(setInterval(()=>showReminder('drink'),drinkMs));
+  notifIntervals.push(setInterval(()=>showReminder('pee'),peeMs));
 }
+function stopReminders(){ notifIntervals.forEach(clearInterval); notifIntervals=[]; }
 
-function stopReminders(){
-  if(notifCheckInterval){ clearInterval(notifCheckInterval); notifCheckInterval=null; }
-}
-
-function todayTs(timeStr){
-  const [h,m]=timeStr.split(':').map(Number);
-  const d=new Date();
-  d.setHours(h,m,0,0);
-  return d.getTime();
-}
-
-function resetDrinkTimer(){
-  lastDrinkTime=Date.now();
-  dismissReminderType('drink');
-}
-function resetPeeTimer(){
-  lastPeeTime=Date.now();
-  dismissReminderType('pee');
-}
-
-function checkReminders(){
-  if(!appData.settings.notifications) return;
-  const plan=appData.settings.plan;
-  const now=Date.now();
-  const stopMin=timeToMin(plan.stopDrinking||'19:00');
-  const nowMin=timeToMin(nowTime());
-
-  // Drink check
-  const drinkMs=(plan.drinkIntervalHours||1)*3600*1000;
-  if(nowMin<=stopMin && (now-lastDrinkTime)>=drinkMs){
-    showReminder('drink');
-  }
-  // Pee check
-  const peeMs=(plan.peeIntervalHours||2)*3600*1000;
-  if((now-lastPeeTime)>=peeMs){
-    showReminder('pee');
-  }
-}
-
-let activeReminders={}; // type → banner shown
+let currentReminder=null;
 function showReminder(type){
-  if(activeReminders[type]) return; // already shown
-  activeReminders[type]=true;
   const plan=appData.settings.plan;
+  const stop=timeToMin(plan.stopDrinking);
+  if(type==='drink' && timeToMin(nowTime())>stop) return; // past stop time
+  currentReminder=type;
   const banner=document.getElementById('reminderBanner');
   const txt=document.getElementById('reminderText');
   const btn=document.getElementById('reminderYes');
   if(type==='drink'){
-    txt.textContent='💧 È ora di bere!';
+    txt.textContent='💧 Ora di bere!';
     btn.textContent='Bevi ✓';
-    btn.onclick=()=>{
-      const day=getDay(currentDate);
-      day.events.push({time:nowTime(),type:'in',amount:plan.glassml||200});
-      saveAll(); render();
-      resetDrinkTimer();
-      activeReminders['drink']=false;
-    };
+    btn.onclick=()=>{ const day=getDay(currentDate); day.events.push({time:nowTime(),type:'in',amount:plan.glassml||200}); saveAll(); render(); dismissReminder(); };
   } else {
-    txt.textContent='🚽 Pausa pipì!';
-    btn.textContent='Vai ✓';
-    btn.onclick=()=>{
-      openPeePopup();
-      resetPeeTimer();
-      activeReminders['pee']=false;
-      banner.style.display='none';
-    };
+    txt.textContent='🚽 Ora della pipì!';
+    btn.textContent='Ricordato ✓';
+    btn.onclick=()=>{ openPeePopup(); dismissReminder(); };
   }
   banner.style.display='block';
-
-  // Native notification (works when PWA installed and browser running)
   if('Notification' in window && Notification.permission==='granted'){
-    const msg=type==='drink'?'Bevi un bicchiere d\'acqua 💧':'Pausa pipì 🚽 — è passato il momento';
-    if(navigator.serviceWorker && navigator.serviceWorker.controller){
-      navigator.serviceWorker.ready.then(reg=>{
-        reg.showNotification('Pelvic Flow',{body:msg,icon:'',badge:'',vibrate:[100,50,100],tag:type,renotify:true});
-      }).catch(()=>new Notification('Pelvic Flow',{body:msg}));
-    } else {
-      new Notification('Pelvic Flow',{body:msg});
-    }
+    new Notification('Pelvic Flow',{body:type==='drink'?'Ora di bere un bicchiere d\'acqua':'Ora della pipì 🚽',icon:''});
   }
 }
-
 function dismissReminder(){
   document.getElementById('reminderBanner').style.display='none';
-  activeReminders={};
-}
-function dismissReminderType(type){
-  activeReminders[type]=false;
-  // Hide banner only if no other reminder active
-  if(!Object.values(activeReminders).some(Boolean)){
-    document.getElementById('reminderBanner').style.display='none';
-  }
+  currentReminder=null;
 }
 
 /* ===================== TABS ===================== */
@@ -1886,21 +2050,7 @@ const manifestBlob=new Blob([JSON.stringify({
 })],{type:'application/json'});
 document.getElementById('pwa-manifest').href=URL.createObjectURL(manifestBlob);
 
-const swCode=`
-const CACHE='pf-v3';
-self.addEventListener('install',e=>self.skipWaiting());
-self.addEventListener('activate',e=>clients.claim());
-self.addEventListener('fetch',e=>e.respondWith(
-  caches.match(e.request).then(c=>c||fetch(e.request).catch(()=>c))
-));
-self.addEventListener('notificationclick',e=>{
-  e.notification.close();
-  e.waitUntil(clients.matchAll({type:'window'}).then(list=>{
-    for(const c of list){ if(c.url&&'focus' in c) return c.focus(); }
-    if(clients.openWindow) return clients.openWindow('./');
-  }));
-});
-`;
+const swCode=`const CACHE='pf-v3';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>clients.claim());self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request).catch(()=>c))));`;
 if('serviceWorker' in navigator){
   const swUrl=URL.createObjectURL(new Blob([swCode],{type:'application/javascript'}));
   navigator.serviceWorker.register(swUrl,{scope:'./'}).catch(()=>{});
@@ -1923,11 +2073,13 @@ buildBristol();
 updateColorSlider(3);
 refreshExercises();
 loadSettings();
+// v3.2: set currentDate from wake-based active day (spec §1), respecting last manual nav
+if(!manualNavActive){
+  currentDate=computeActiveDay();
+}
 render();
 if(appData.settings.notifications) startReminders();
 window.addEventListener('resize',()=>renderChart());
-// Dismiss drag mode if user scrolls away
-document.addEventListener('scroll',()=>{ if(dragState.active) cancelDrag(); },{passive:true});
 </script>
 </body>
 </html>
